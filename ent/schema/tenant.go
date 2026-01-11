@@ -45,6 +45,11 @@ func (Tenant) Edges() []ent.Edge {
 		edge.To("policies", Policy.Type),
 		edge.To("workflows", Workflow.Type),
 		edge.To("lineage_events", LineageEvent.Type),
+		edge.To("datasources", Datasource.Type),
+		edge.To("checks", Check.Type),
+		edge.To("schedules", Schedule.Type),
+		edge.To("alert_channels", AlertChannel.Type),
+		edge.To("views", View.Type),
 	}
 }
 

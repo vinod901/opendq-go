@@ -1,10 +1,27 @@
-# OpenDQ Go - Enterprise Control-Plane Platform
+# OpenDQ Go - Enterprise Data Quality Platform
 
-An enterprise-grade control-plane platform built with Go and SvelteKit for data quality, governance, and lineage management.
+An enterprise-grade data quality platform built with Go for data observability, governance, and lineage management.
 
 ## Features
 
-### Core Capabilities
+### Core Data Quality Capabilities
+- **Multi-Datasource Connectivity**: Connect to all major databases and data warehouses
+  - Databases: PostgreSQL, MySQL, SQL Server, Oracle
+  - Cloud Data Warehouses: Snowflake, Databricks, BigQuery, Trino
+  - Analytics Databases: DuckDB, ClickHouse
+  - Lakehouse: HDFS, Delta Lake, Apache Iceberg, Apache Hudi
+- **Data Quality Checks**: Create, edit, delete, and run checks on any datasource
+  - Row count, null checks, uniqueness, freshness
+  - Custom SQL checks, value validations
+  - Schema validation, referential integrity
+- **Scheduled Execution**: Run checks on a schedule with cron expressions
+- **Alerting**: Get notified on failures via email, Slack, webhooks, PagerDuty, MS Teams, OpsGenie
+- **File Observability**: Monitor files in cloud storage
+  - CSV, Parquet, Avro file formats
+  - S3, GCS, Azure Blob Storage
+- **Logical Views**: Create virtual views on datasources for checks on data that doesn't exist in the database
+
+### Platform Capabilities
 - **Multi-Tenant Architecture**: Isolated namespaces for multiple organizations
 - **Policy-Driven**: Flexible policy engine for data governance and compliance
 - **Workflow-Aware**: State machine-based workflow orchestration
@@ -175,6 +192,63 @@ GET    /api/v1/lineage  - Query lineage events
 POST   /api/v1/lineage  - Create lineage event
 ```
 
+### Datasource Management
+```
+GET    /api/v1/datasources         - List all datasources
+POST   /api/v1/datasources         - Create a datasource
+GET    /api/v1/datasources/{id}    - Get datasource details
+PUT    /api/v1/datasources/{id}    - Update datasource
+DELETE /api/v1/datasources/{id}    - Delete datasource
+POST   /api/v1/datasources/test    - Test datasource connection
+GET    /api/v1/datasources/{id}/tables  - List tables in datasource
+GET    /api/v1/datasources/{id}/checks  - List checks for datasource
+```
+
+### Data Quality Checks
+```
+GET    /api/v1/checks              - List all checks
+POST   /api/v1/checks              - Create a check
+GET    /api/v1/checks/{id}         - Get check details
+PUT    /api/v1/checks/{id}         - Update check
+DELETE /api/v1/checks/{id}         - Delete check
+POST   /api/v1/checks/{id}/run     - Run check immediately
+GET    /api/v1/checks/{id}/results - Get check results history
+```
+
+### Schedules
+```
+GET    /api/v1/schedules                 - List all schedules
+POST   /api/v1/schedules                 - Create a schedule
+GET    /api/v1/schedules/{id}            - Get schedule details
+PUT    /api/v1/schedules/{id}            - Update schedule
+DELETE /api/v1/schedules/{id}            - Delete schedule
+POST   /api/v1/schedules/{id}/run        - Run schedule now
+GET    /api/v1/schedules/{id}/executions - Get execution history
+```
+
+### Alert Channels
+```
+GET    /api/v1/alerts/channels           - List alert channels
+POST   /api/v1/alerts/channels           - Create alert channel
+GET    /api/v1/alerts/channels/{id}      - Get channel details
+PUT    /api/v1/alerts/channels/{id}      - Update channel
+DELETE /api/v1/alerts/channels/{id}      - Delete channel
+POST   /api/v1/alerts/channels/{id}/test - Test alert channel
+GET    /api/v1/alerts/history            - Get alert history
+```
+
+### Logical Views
+```
+GET    /api/v1/views                     - List all views
+POST   /api/v1/views                     - Create a view
+GET    /api/v1/views/{id}                - Get view details
+PUT    /api/v1/views/{id}                - Update view
+DELETE /api/v1/views/{id}                - Delete view
+GET    /api/v1/views/{id}/query          - Execute view query
+POST   /api/v1/views/{id}/validate       - Validate view
+GET    /api/v1/views/{id}/sql            - Get view SQL
+```
+
 ## Data Models
 
 ### Tenant
@@ -191,6 +265,38 @@ State machine-based workflows with FSM transitions.
 
 ### LineageEvent
 OpenLineage-compatible data lineage events.
+
+### Datasource
+Connection configuration for databases, data warehouses, and storage systems.
+Supported types:
+- **Databases**: postgres, mysql, sqlserver, oracle
+- **Cloud Data Warehouses**: snowflake, databricks, bigquery, trino
+- **Analytics**: duckdb, clickhouse
+- **Lakehouse**: hdfs, deltalake, iceberg, hudi
+- **Cloud Storage**: s3, gcs, azure_blob, local
+
+### Check
+Data quality check definitions with various types:
+- `row_count` - Validate table row count
+- `null_check` - Check for null values
+- `uniqueness` - Validate unique values
+- `freshness` - Check data freshness
+- `custom_sql` - Custom SQL validation
+- `min_value`, `max_value`, `mean_value` - Value checks
+- `regex` - Pattern matching
+- `range` - Value range validation
+- `set_membership` - Allowed values check
+- `referential_integrity` - Foreign key validation
+- `schema_match` - Schema validation
+
+### Schedule
+Cron-based scheduling for running checks with support for alerting.
+
+### AlertChannel
+Alert notification channels (email, Slack, webhook, PagerDuty, MS Teams, OpsGenie).
+
+### View
+Logical views that can be defined on datasources for running checks on virtual data.
 
 ## Workflow Examples
 
@@ -252,10 +358,14 @@ opendq-go/
 │   ├── lineage/         # OpenLineage client
 │   ├── tenant/          # Multi-tenant management
 │   ├── policy/          # Policy engine
+│   ├── datasource/      # Datasource connectivity (databases, warehouses, storage)
+│   ├── check/           # Data quality check definitions and execution
+│   ├── scheduler/       # Scheduled check execution
+│   ├── alerting/        # Alert notifications (email, Slack, webhook, etc.)
+│   ├── view/            # Logical views for virtual datasets
 │   └── middleware/      # HTTP middleware
 ├── pkg/
-│   ├── config/          # Configuration management
-│   └── models/          # Shared models
+│   └── config/          # Configuration management
 ├── api/
 │   └── http/            # HTTP handlers
 ├── ent/
