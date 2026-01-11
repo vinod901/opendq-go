@@ -52,8 +52,7 @@ func (LineageEvent) Edges() []ent.Edge {
 			Required(),
 		edge.From("workflow", Workflow.Type).
 			Ref("lineage_events").
-			Unique().
-			Optional(),
+			Unique(),
 	}
 }
 
