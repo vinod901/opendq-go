@@ -36,6 +36,8 @@ const (
 	TypeGCS          Type = "gcs"
 	TypeAzureBlob    Type = "azure_blob"
 	TypeLocalStorage Type = "local"
+	// Virtual types
+	TypeView Type = "view"
 )
 
 // Datasource represents a data source configuration

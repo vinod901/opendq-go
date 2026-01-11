@@ -629,5 +629,5 @@ func (c *ViewConnector) GetRowCount(ctx context.Context, table string) (int64, e
 
 // Type returns the datasource type
 func (c *ViewConnector) Type() datasource.Type {
-	return "view"
+	return datasource.TypeView
 }
