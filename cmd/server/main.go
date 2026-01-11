@@ -11,12 +11,17 @@ import (
 	"time"
 
 	api "github.com/vinod901/opendq-go/api/http"
+	"github.com/vinod901/opendq-go/internal/alerting"
 	"github.com/vinod901/opendq-go/internal/auth"
 	"github.com/vinod901/opendq-go/internal/authorization"
+	"github.com/vinod901/opendq-go/internal/check"
+	"github.com/vinod901/opendq-go/internal/datasource"
 	"github.com/vinod901/opendq-go/internal/lineage"
 	"github.com/vinod901/opendq-go/internal/middleware"
 	"github.com/vinod901/opendq-go/internal/policy"
+	"github.com/vinod901/opendq-go/internal/scheduler"
 	"github.com/vinod901/opendq-go/internal/tenant"
+	"github.com/vinod901/opendq-go/internal/view"
 	"github.com/vinod901/opendq-go/internal/workflow"
 	"github.com/vinod901/opendq-go/pkg/config"
 )
@@ -44,16 +49,26 @@ func run() error {
 		return fmt.Errorf("failed to initialize components: %w", err)
 	}
 
-	// Create HTTP handler
+	// Create HTTP handler for core platform features
 	handler := api.NewHandler(
 		components.tenantManager,
 		components.policyManager,
 		components.workflowEngine,
 	)
 
+	// Create HTTP handler for data quality features
+	dqHandler := api.NewDataQualityHandler(
+		components.datasourceManager,
+		components.checkManager,
+		components.schedulerManager,
+		components.alertManager,
+		components.viewManager,
+	)
+
 	// Set up router
 	mux := http.NewServeMux()
 	handler.RegisterRoutes(mux)
+	dqHandler.RegisterRoutes(mux)
 
 	// Build middleware chain
 	var httpHandler http.Handler = mux
@@ -121,12 +136,17 @@ func run() error {
 }
 
 type components struct {
-	authManager     *auth.Manager
-	authzManager    *authorization.Manager
-	tenantManager   *tenant.Manager
-	policyManager   *policy.Manager
-	workflowEngine  *workflow.Engine
-	lineageClient   *lineage.Client
+	authManager       *auth.Manager
+	authzManager      *authorization.Manager
+	tenantManager     *tenant.Manager
+	policyManager     *policy.Manager
+	workflowEngine    *workflow.Engine
+	lineageClient     *lineage.Client
+	datasourceManager *datasource.Manager
+	checkManager      *check.Manager
+	schedulerManager  *scheduler.Manager
+	alertManager      *alerting.Manager
+	viewManager       *view.Manager
 }
 
 func initializeComponents(ctx context.Context, cfg *config.Config) (*components, error) {
@@ -186,6 +206,28 @@ func initializeComponents(ctx context.Context, cfg *config.Config) (*components,
 		})
 		log.Println("OpenLineage client initialized")
 	}
+
+	// Initialize data quality components
+	
+	// Initialize datasource manager
+	comp.datasourceManager = datasource.NewManager()
+	log.Println("Datasource manager initialized")
+
+	// Initialize alert manager
+	comp.alertManager = alerting.NewManager()
+	log.Println("Alert manager initialized")
+
+	// Initialize check manager
+	comp.checkManager = check.NewManager(comp.datasourceManager)
+	log.Println("Check manager initialized")
+
+	// Initialize scheduler manager
+	comp.schedulerManager = scheduler.NewManager(comp.checkManager, comp.alertManager)
+	log.Println("Scheduler manager initialized")
+
+	// Initialize view manager
+	comp.viewManager = view.NewManager(comp.datasourceManager)
+	log.Println("View manager initialized")
 
 	return comp, nil
 }
