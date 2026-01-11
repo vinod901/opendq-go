@@ -3,7 +3,8 @@ package tenant
 import (
 	"context"
 	"fmt"
-	"time"
+
+	"github.com/google/uuid"
 )
 
 // Manager handles tenant operations
@@ -104,7 +105,7 @@ func (m *Manager) ListTenants(ctx context.Context) ([]*Tenant, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 
-// Helper function to generate IDs (in real implementation, use UUID)
+// Helper function to generate IDs using UUID
 func generateID() string {
-	return "tenant-" + fmt.Sprintf("%d", time.Now().Unix())
+	return uuid.New().String()
 }

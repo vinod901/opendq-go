@@ -10,6 +10,14 @@ import (
 	"github.com/vinod901/opendq-go/internal/tenant"
 )
 
+// Context keys for storing request-scoped data
+type contextKey string
+
+const (
+	contextKeyClaims contextKey = "claims"
+	contextKeyUserID contextKey = "user_id"
+)
+
 // AuthMiddleware handles OIDC authentication
 type AuthMiddleware struct {
 	authManager *auth.Manager
@@ -38,8 +46,8 @@ func (m *AuthMiddleware) Handle(next http.Handler) http.Handler {
 		}
 
 		// Add claims to context
-		ctx := context.WithValue(r.Context(), "claims", claims)
-		ctx = context.WithValue(ctx, "user_id", claims.Subject)
+		ctx := context.WithValue(r.Context(), contextKeyClaims, claims)
+		ctx = context.WithValue(ctx, contextKeyUserID, claims.Subject)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -94,7 +102,7 @@ func (m *AuthzMiddleware) Handle(next http.Handler) http.Handler {
 		}
 
 		// Get user from context
-		userID, ok := r.Context().Value("user_id").(string)
+		userID, ok := r.Context().Value(contextKeyUserID).(string)
 		if !ok {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
