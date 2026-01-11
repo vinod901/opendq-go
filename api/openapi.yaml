@@ -1,0 +1,1187 @@
+openapi: 3.0.3
+info:
+  title: OpenDQ API
+  description: |
+    OpenDQ is an enterprise-grade data quality platform. This API provides 
+    endpoints for managing datasources, data quality checks, schedules, 
+    alerts, and views.
+    
+    ## Authentication
+    All API endpoints (except /health) require authentication via Bearer token.
+    
+    ## Multi-Tenancy
+    For multi-tenant deployments, include the `X-Tenant` header with your tenant slug.
+  version: 1.0.0
+  contact:
+    name: OpenDQ Team
+    url: https://github.com/vinod901/opendq-go
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Development server
+
+tags:
+  - name: Health
+    description: Health check endpoints
+  - name: Tenants
+    description: Tenant management
+  - name: Datasources
+    description: Datasource management
+  - name: Checks
+    description: Data quality checks
+  - name: Schedules
+    description: Check scheduling
+  - name: Alerts
+    description: Alert channels and history
+  - name: Views
+    description: Logical views
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      operationId: healthCheck
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+
+  /tenants:
+    get:
+      tags: [Tenants]
+      summary: List tenants
+      operationId: listTenants
+      responses:
+        '200':
+          description: List of tenants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tenant'
+    post:
+      tags: [Tenants]
+      summary: Create tenant
+      operationId: createTenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTenantRequest'
+      responses:
+        '201':
+          description: Tenant created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+
+  /datasources:
+    get:
+      tags: [Datasources]
+      summary: List datasources
+      operationId: listDatasources
+      parameters:
+        - name: tenant_id
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of datasources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Datasource'
+    post:
+      tags: [Datasources]
+      summary: Create datasource
+      operationId: createDatasource
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDatasourceRequest'
+      responses:
+        '201':
+          description: Datasource created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Datasource'
+
+  /datasources/test:
+    post:
+      tags: [Datasources]
+      summary: Test datasource connection
+      operationId: testDatasourceConnection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDatasourceRequest'
+      responses:
+        '200':
+          description: Connection test result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestConnectionResponse'
+
+  /datasources/{id}:
+    get:
+      tags: [Datasources]
+      summary: Get datasource
+      operationId: getDatasource
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Datasource details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Datasource'
+    put:
+      tags: [Datasources]
+      summary: Update datasource
+      operationId: updateDatasource
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Datasource updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Datasource'
+    delete:
+      tags: [Datasources]
+      summary: Delete datasource
+      operationId: deleteDatasource
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Datasource deleted
+
+  /datasources/{id}/tables:
+    get:
+      tags: [Datasources]
+      summary: List tables in datasource
+      operationId: listDatasourceTables
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of tables
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TableInfo'
+
+  /checks:
+    get:
+      tags: [Checks]
+      summary: List checks
+      operationId: listChecks
+      parameters:
+        - name: tenant_id
+          in: query
+          schema:
+            type: string
+        - name: datasource_id
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of checks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Check'
+    post:
+      tags: [Checks]
+      summary: Create check
+      operationId: createCheck
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCheckRequest'
+      responses:
+        '201':
+          description: Check created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Check'
+
+  /checks/{id}:
+    get:
+      tags: [Checks]
+      summary: Get check
+      operationId: getCheck
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Check details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Check'
+    put:
+      tags: [Checks]
+      summary: Update check
+      operationId: updateCheck
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Check updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Check'
+    delete:
+      tags: [Checks]
+      summary: Delete check
+      operationId: deleteCheck
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Check deleted
+
+  /checks/{id}/run:
+    post:
+      tags: [Checks]
+      summary: Run check
+      operationId: runCheck
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Check result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckResult'
+
+  /checks/{id}/results:
+    get:
+      tags: [Checks]
+      summary: Get check results
+      operationId: getCheckResults
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Check results history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CheckResult'
+
+  /schedules:
+    get:
+      tags: [Schedules]
+      summary: List schedules
+      operationId: listSchedules
+      parameters:
+        - name: tenant_id
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of schedules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Schedule'
+    post:
+      tags: [Schedules]
+      summary: Create schedule
+      operationId: createSchedule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateScheduleRequest'
+      responses:
+        '201':
+          description: Schedule created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schedule'
+
+  /schedules/{id}:
+    get:
+      tags: [Schedules]
+      summary: Get schedule
+      operationId: getSchedule
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Schedule details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schedule'
+    put:
+      tags: [Schedules]
+      summary: Update schedule
+      operationId: updateSchedule
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Schedule updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schedule'
+    delete:
+      tags: [Schedules]
+      summary: Delete schedule
+      operationId: deleteSchedule
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Schedule deleted
+
+  /schedules/{id}/run:
+    post:
+      tags: [Schedules]
+      summary: Run schedule now
+      operationId: runScheduleNow
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Schedule execution started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleExecution'
+
+  /schedules/{id}/executions:
+    get:
+      tags: [Schedules]
+      summary: Get schedule executions
+      operationId: getScheduleExecutions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Schedule execution history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ScheduleExecution'
+
+  /alerts/channels:
+    get:
+      tags: [Alerts]
+      summary: List alert channels
+      operationId: listAlertChannels
+      parameters:
+        - name: tenant_id
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of alert channels
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AlertChannel'
+    post:
+      tags: [Alerts]
+      summary: Create alert channel
+      operationId: createAlertChannel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAlertChannelRequest'
+      responses:
+        '201':
+          description: Alert channel created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertChannel'
+
+  /alerts/channels/{id}:
+    get:
+      tags: [Alerts]
+      summary: Get alert channel
+      operationId: getAlertChannel
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Alert channel details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertChannel'
+    put:
+      tags: [Alerts]
+      summary: Update alert channel
+      operationId: updateAlertChannel
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Alert channel updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertChannel'
+    delete:
+      tags: [Alerts]
+      summary: Delete alert channel
+      operationId: deleteAlertChannel
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Alert channel deleted
+
+  /alerts/channels/{id}/test:
+    post:
+      tags: [Alerts]
+      summary: Test alert channel
+      operationId: testAlertChannel
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Test result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestConnectionResponse'
+
+  /alerts/history:
+    get:
+      tags: [Alerts]
+      summary: Get alert history
+      operationId: getAlertHistory
+      parameters:
+        - name: channel_id
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Alert history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AlertHistory'
+
+  /views:
+    get:
+      tags: [Views]
+      summary: List views
+      operationId: listViews
+      parameters:
+        - name: tenant_id
+          in: query
+          schema:
+            type: string
+        - name: datasource_id
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of views
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/View'
+    post:
+      tags: [Views]
+      summary: Create view
+      operationId: createView
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateViewRequest'
+      responses:
+        '201':
+          description: View created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/View'
+
+  /views/{id}:
+    get:
+      tags: [Views]
+      summary: Get view
+      operationId: getView
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: View details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/View'
+    put:
+      tags: [Views]
+      summary: Update view
+      operationId: updateView
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: View updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/View'
+    delete:
+      tags: [Views]
+      summary: Delete view
+      operationId: deleteView
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: View deleted
+
+  /views/{id}/query:
+    get:
+      tags: [Views]
+      summary: Query view
+      operationId: queryView
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Query results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryResult'
+
+  /views/{id}/validate:
+    post:
+      tags: [Views]
+      summary: Validate view
+      operationId: validateView
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  message:
+                    type: string
+
+  /views/{id}/sql:
+    get:
+      tags: [Views]
+      summary: Get view SQL
+      operationId: getViewSQL
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: View SQL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sql:
+                    type: string
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Tenant:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        slug:
+          type: string
+        metadata:
+          type: object
+        active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateTenantRequest:
+      type: object
+      required: [name, slug]
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        metadata:
+          type: object
+
+    Datasource:
+      type: object
+      properties:
+        id:
+          type: string
+        tenant_id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [postgres, mysql, sqlserver, oracle, snowflake, databricks, bigquery, trino, duckdb, clickhouse, hdfs, deltalake, iceberg, hudi, s3, gcs, azure_blob, local]
+        connection:
+          type: object
+        metadata:
+          type: object
+        active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateDatasourceRequest:
+      type: object
+      required: [name, type, connection]
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+        connection:
+          type: object
+          properties:
+            host:
+              type: string
+            port:
+              type: integer
+            database:
+              type: string
+            username:
+              type: string
+            password:
+              type: string
+            ssl_mode:
+              type: string
+
+    TableInfo:
+      type: object
+      properties:
+        schema:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        row_count:
+          type: integer
+
+    Check:
+      type: object
+      properties:
+        id:
+          type: string
+        tenant_id:
+          type: string
+        datasource_id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [row_count, null_check, uniqueness, freshness, custom_sql, min_value, max_value, mean_value, sum_value, std_dev, regex, format, range, set_membership, referential_integrity, volume, distribution, schema_match, column_count, column_type]
+        table:
+          type: string
+        column:
+          type: string
+        parameters:
+          type: object
+        threshold:
+          type: object
+        severity:
+          type: string
+          enum: [critical, high, medium, low, info]
+        tags:
+          type: array
+          items:
+            type: string
+        active:
+          type: boolean
+        last_status:
+          type: string
+        last_run_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateCheckRequest:
+      type: object
+      required: [name, datasource_id, type, table]
+      properties:
+        name:
+          type: string
+        datasource_id:
+          type: string
+        type:
+          type: string
+        table:
+          type: string
+        column:
+          type: string
+        parameters:
+          type: object
+        threshold:
+          type: object
+        severity:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+
+    CheckResult:
+      type: object
+      properties:
+        id:
+          type: string
+        check_id:
+          type: string
+        datasource_id:
+          type: string
+        status:
+          type: string
+          enum: [pending, running, passed, failed, warning, error, skipped]
+        actual_value:
+          type: object
+        expected_value:
+          type: object
+        message:
+          type: string
+        details:
+          type: object
+        duration:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        error:
+          type: string
+
+    Schedule:
+      type: object
+      properties:
+        id:
+          type: string
+        tenant_id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        cron_expression:
+          type: string
+        timezone:
+          type: string
+        check_ids:
+          type: array
+          items:
+            type: string
+        alert_channel_ids:
+          type: array
+          items:
+            type: string
+        enabled:
+          type: boolean
+        last_run_at:
+          type: string
+          format: date-time
+        next_run_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateScheduleRequest:
+      type: object
+      required: [name, cron_expression, check_ids]
+      properties:
+        name:
+          type: string
+        cron_expression:
+          type: string
+        timezone:
+          type: string
+        check_ids:
+          type: array
+          items:
+            type: string
+        alert_channel_ids:
+          type: array
+          items:
+            type: string
+        enabled:
+          type: boolean
+
+    ScheduleExecution:
+      type: object
+      properties:
+        id:
+          type: string
+        schedule_id:
+          type: string
+        status:
+          type: string
+        started_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+        check_results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CheckResult'
+        alerts_sent:
+          type: integer
+        error:
+          type: string
+
+    AlertChannel:
+      type: object
+      properties:
+        id:
+          type: string
+        tenant_id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [email, slack, webhook, pagerduty, msteams, opsgenie]
+        config:
+          type: object
+        enabled:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateAlertChannelRequest:
+      type: object
+      required: [name, type, config]
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        config:
+          type: object
+        enabled:
+          type: boolean
+
+    AlertHistory:
+      type: object
+      properties:
+        id:
+          type: string
+        channel_id:
+          type: string
+        check_id:
+          type: string
+        schedule_id:
+          type: string
+        status:
+          type: string
+        message:
+          type: string
+        error:
+          type: string
+        sent_at:
+          type: string
+          format: date-time
+
+    View:
+      type: object
+      properties:
+        id:
+          type: string
+        tenant_id:
+          type: string
+        datasource_id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        sql_query:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateViewRequest:
+      type: object
+      required: [name, datasource_id, sql_query]
+      properties:
+        name:
+          type: string
+        datasource_id:
+          type: string
+        description:
+          type: string
+        sql_query:
+          type: string
+
+    QueryResult:
+      type: object
+      properties:
+        columns:
+          type: array
+          items:
+            type: string
+        rows:
+          type: array
+          items:
+            type: object
+        row_count:
+          type: integer
+
+    TestConnectionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        error:
+          type: string
+
+security:
+  - BearerAuth: []

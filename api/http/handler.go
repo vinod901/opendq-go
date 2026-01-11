@@ -34,6 +34,10 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	// Health check
 	mux.HandleFunc("/health", h.HealthCheck)
 
+	// API documentation
+	mux.HandleFunc("/api/docs", h.serveOpenAPISpec)
+	mux.HandleFunc("/api/docs/", h.serveSwaggerUI)
+
 	// Tenant routes
 	mux.HandleFunc("/api/v1/tenants", h.handleTenants)
 	mux.HandleFunc("/api/v1/tenants/", h.handleTenant)
@@ -48,6 +52,33 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 
 	// Lineage routes
 	mux.HandleFunc("/api/v1/lineage", h.handleLineage)
+}
+
+// serveOpenAPISpec serves the OpenAPI specification
+func (h *Handler) serveOpenAPISpec(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "api/openapi.yaml")
+}
+
+// serveSwaggerUI serves a simple Swagger UI redirect
+func (h *Handler) serveSwaggerUI(w http.ResponseWriter, r *http.Request) {
+	// Redirect to Swagger UI hosted version with our spec
+	swaggerURL := "https://petstore.swagger.io/?url=http://localhost:8080/api/docs"
+	w.Header().Set("Content-Type", "text/html")
+	w.Write([]byte(`<!DOCTYPE html>
+<html>
+<head>
+    <title>OpenDQ API Documentation</title>
+    <meta http-equiv="refresh" content="0; url='` + swaggerURL + `'" />
+</head>
+<body>
+    <p>Redirecting to <a href="` + swaggerURL + `">Swagger UI</a>...</p>
+    <p>Alternatively, you can:</p>
+    <ul>
+        <li>View the <a href="/api/docs">OpenAPI Spec (YAML)</a></li>
+        <li>Use <a href="https://editor.swagger.io/?url=http://localhost:8080/api/docs">Swagger Editor</a></li>
+    </ul>
+</body>
+</html>`))
 }
 
 // HealthCheck handles health check requests
