@@ -26,15 +26,16 @@ services:
     environment:
       OPENFGA_DATASTORE_ENGINE: postgres
       OPENFGA_DATASTORE_URI: postgres://postgres:postgres@postgres:5432/openfga?sslmode=disable
+      OPENFGA_PLAYGROUND_ENABLED: "true"
     ports:
-      - "8081:8080"
-      - "8082:8081"
-      - "3000:3000"
+      - "8081:8080"  # HTTP API
+      - "8082:8081"  # gRPC API
+      - "3002:3000"  # Playground UI
     depends_on:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "grpc_health_probe", "-addr=:8081"]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/healthz || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5

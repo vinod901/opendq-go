@@ -1,60 +1,62 @@
 # OpenDQ Documentation
 
-Welcome to the OpenDQ documentation. OpenDQ is an enterprise-grade open-source data quality and governance platform.
+Welcome to the OpenDQ documentation. This documentation is organized into two main sections:
 
 ## 📚 Documentation Structure
 
-### Getting Started
-- [Introduction](01-introduction.md) - Overview and key concepts
-- [Quick Start Guide](02-quick-start.md) - Get up and running in 5 minutes
-- [Installation](03-installation.md) - Detailed installation instructions
+### [Architecture Documentation](arch/README.md)
 
-### Core Concepts
-- [Architecture Overview](04-architecture.md) - System architecture and components
-- [Key Features](05-features.md) - Feature highlights and capabilities
-- [Data Lineage](06-lineage.md) - Track data flow and transformations
-- [Policy Management](07-policies.md) - Define and enforce data quality rules
+Technical documentation for developers working on or extending OpenDQ:
 
-### Configuration & Setup
-- [Configuration Guide](08-configuration.md) - Environment and system configuration
-- [Database Connectors](09-database-connectors.md) - Connect to various data sources
-- [Authentication & Authorization](10-auth.md) - Security and access control
+- [Architecture Overview](arch/01-architecture-overview.md) - System design and component interactions
+- [Authentication](arch/02-authentication.md) - OIDC/Keycloak authentication flow
+- [Authorization](arch/03-authorization.md) - OpenFGA relationship-based access control
+- [Data Layer (Ent ORM)](arch/04-data-layer-ent.md) - Entity schemas and database design
+- [API Design](arch/05-api-design.md) - HTTP handlers and RESTful API structure
+- [Datasources](arch/06-datasources.md) - Datasource connectivity and connectors
+- [Data Quality Checks](arch/07-data-quality-checks.md) - Check definitions and execution
+- [Scheduling & Alerting](arch/08-scheduling-alerting.md) - Scheduled executions and notifications
+- [Multi-Tenancy](arch/09-multi-tenancy.md) - Tenant isolation and management
+- [Development Guide](arch/10-development-guide.md) - Local development setup and workflow
 
-### User Guides
-- [Working with Tenants](11-tenants.md) - Multi-tenancy management
-- [Workflow Engine](12-workflows.md) - Automate data quality processes
-- [API Reference](13-api-reference.md) - REST API documentation
+### [Product Documentation](product/README.md)
 
-### Advanced Topics
-- [Development Guide](14-development.md) - Contributing and development setup
-- [Deployment Guide](15-deployment.md) - Production deployment strategies
-- [Troubleshooting](16-troubleshooting.md) - Common issues and solutions
+User-focused documentation for using OpenDQ:
 
-### Reference
-- [Glossary](17-glossary.md) - Terms and definitions
-- [FAQ](18-faq.md) - Frequently asked questions
-
----
+- [Introduction](product/01-introduction.md) - What is OpenDQ and why use it
+- [Quick Start](product/02-quick-start.md) - Get started in 5 minutes
+- [User Guide](product/03-user-guide.md) - Complete user guide
+- [Feature Guides](product/04-features.md) - In-depth feature documentation
+- [API Reference](product/05-api-reference.md) - Complete API documentation
 
 ## 🚀 Quick Links
 
-- **GitHub Repository**: [opendq-go](https://github.com/yourusername/opendq-go)
-- **Live Demo**: Coming soon
-- **Community**: Join our discussions
+| Topic | Link |
+|-------|------|
+| **Get Started** | [Quick Start Guide](product/02-quick-start.md) |
+| **Run Locally** | [Development Guide](arch/10-development-guide.md) |
+| **API Reference** | [API Documentation](product/05-api-reference.md) |
+| **Architecture** | [Architecture Overview](arch/01-architecture-overview.md) |
 
-## 📖 About OpenDQ
+## 🎯 What is OpenDQ?
 
-OpenDQ is designed to help organizations:
-- ✅ Monitor and improve data quality
-- 🔍 Track data lineage across systems
-- 📋 Enforce data governance policies
-- 🔄 Automate data quality workflows
-- 🔐 Secure data with fine-grained access control
+OpenDQ is an open-source, enterprise-grade **Data Quality and Governance Platform** that helps organizations ensure their data is accurate, consistent, and trustworthy.
 
-## 🤝 Contributing
+### Key Features
 
-We welcome contributions! Please see our [Development Guide](14-development.md) for details.
+- **Multi-Datasource Connectivity**: Connect to databases, data warehouses, and cloud storage
+- **Data Quality Checks**: Row count, null checks, freshness, custom SQL, and more
+- **Scheduled Execution**: Run checks automatically on a schedule
+- **Alerting**: Get notified on failures via Slack, email, PagerDuty, etc.
+- **Multi-Tenant**: Support for multiple organizations
+- **Fine-Grained Authorization**: Role-based access control with OpenFGA
+- **Data Lineage**: Track data flow with OpenLineage integration
 
-## 📄 License
+### Technology Stack
 
-OpenDQ is released under the Apache 2.0 License.
+- **Backend**: Go with Ent ORM
+- **Frontend**: SvelteKit
+- **Authentication**: OIDC (Keycloak/Okta compatible)
+- **Authorization**: OpenFGA
+- **Data Lineage**: OpenLineage (Marquez)
+- **Database**: PostgreSQL

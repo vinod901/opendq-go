@@ -34,7 +34,7 @@ You should see all services running:
 NAME                   STATUS              PORTS
 opendq-postgres        Up (healthy)        0.0.0.0:5432->5432/tcp
 opendq-redis           Up (healthy)        0.0.0.0:6379->6379/tcp
-opendq-openfga         Up (healthy)        0.0.0.0:8081->8080/tcp
+opendq-openfga         Up (healthy)        0.0.0.0:8081->8080/tcp, 0.0.0.0:3002->3000/tcp
 opendq-keycloak        Up (healthy)        0.0.0.0:8180->8080/tcp
 opendq-marquez         Up (healthy)        0.0.0.0:5000->5000/tcp
 opendq-marquez-web     Up                  0.0.0.0:3001->3000/tcp
@@ -56,6 +56,9 @@ curl http://localhost:5000/api/v1/namespaces
 
 # Check Keycloak
 curl http://localhost:8180/health/ready
+
+# Check OpenFGA
+curl http://localhost:8081/healthz
 ```
 
 ## 🌐 Access the Application
@@ -64,6 +67,7 @@ curl http://localhost:8180/health/ready
 
 | Service | URL | Credentials |
 |---------|-----|-------------|
+| **OpenFGA Playground** | http://localhost:3002 | No auth required |
 | **Marquez Web** (Lineage UI) | http://localhost:3001 | No auth required (dev mode) |
 | **Keycloak Admin** | http://localhost:8180 | admin / admin |
 | **Marquez API** | http://localhost:5000/api/v1 | No auth required (dev mode) |
@@ -162,6 +166,35 @@ Go back to http://localhost:3001 and you'll see:
 - The datasets you registered
 - The lineage graph showing data flow
 
+## 🔧 Running the Full Stack
+
+### Option 1: Run Everything at Once
+
+Use the Makefile command to start all services:
+
+```bash
+# Start infrastructure + backend + frontend
+make dev-all
+```
+
+This will:
+- Start PostgreSQL, Redis, OpenFGA, Keycloak, Marquez
+- Start the OpenDQ backend on http://localhost:8080
+- Start the OpenDQ frontend on http://localhost:5173
+
+### Option 2: Run Components Separately
+
+```bash
+# Start infrastructure only
+make dev
+
+# In a new terminal: Start the backend
+make dev-backend
+
+# In another terminal: Start the frontend
+make dev-frontend
+```
+
 ## 🔧 Building the Go Application
 
 To build and run the OpenDQ Go backend:
@@ -170,14 +203,11 @@ To build and run the OpenDQ Go backend:
 # Install dependencies
 go mod download
 
-# Run database migrations
-make migrate
-
 # Build the application
 make build
 
 # Run the server
-./bin/opendq-server
+./opendq-server
 ```
 
 The server will start on `http://localhost:8080`
